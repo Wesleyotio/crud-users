@@ -2,7 +2,7 @@ import { createApp } from 'vue'
 import axios from 'axios'
 import VueAxios from 'vue-axios';
 
-axios.defaults.baseURL ='http://localhost:9000/'
+axios.defaults.baseURL ='http://localhost:80/'
 axios.defaults.withCredentials = true;
 
 const app = createApp({ });

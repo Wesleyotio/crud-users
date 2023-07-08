@@ -13,9 +13,9 @@
     </head>
     <body>
         <div id="app">
-            
+
         </div>
     </body>
-    <script src="{{ mix('js/app.js') }}" type="text/javascript"> </script>
+    <script src="/js/app.js" type="text/javascript"> </script>
 
 </html>
