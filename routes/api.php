@@ -15,22 +15,25 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+//     return $request->user();
+// });
 
 
-Route::post('login', [UserController::class, 'login']);
 Route::post('/register', [UserController::class, 'register']);
+Route::post('/login', [UserController::class, 'login']);
 
-Route::middleware('auth:sanctum')->group(function(){
+Route::middleware('auth:sanctum')->group(function () {
 
-    Route::post('/logout', [UserController::class, 'logout']);
+    Route::get('/logout', [UserController::class, 'logout']);
     Route::put('/update', [UserController::class, 'update'])->name('api.user.update');
-    Route::get('/all', [UserController::class, 'list'])->name('api.user.all');
+    Route::post('/image-user', [UserController::class, 'imageUser'])->name('api.user.update.image');
+    Route::get('/list', [UserController::class, 'list'])->name('api.user.all');
     Route::get('/show/{id}',[UserController::class, 'show'])->name('api.user.show');
-    Route::post('/remove/{id}',[UserController::class, 'remove'])->name('api.user.remove');
-
+    Route::delete('/delete/{id}',[UserController::class, 'delete'])->name('api.user.remove');
 });
+
+
+
 
 
