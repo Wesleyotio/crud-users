@@ -77,7 +77,10 @@ class UserTest extends TestCase
 
     }
 
-    public function test_update_info_of_user(){
+    public function test_update_info_of_user() {
+
+
+
         $user = User::factory()->create();
 
         $response = $this->post('/api/login', [
@@ -89,9 +92,9 @@ class UserTest extends TestCase
 
         $response = $this->put('/api/update',
         [
-            'name'  => 'Jao Tester',
-            'email' => 'jaosilva@teste.com',
-            'phone' => '(91) 98838-8310'
+            'name'      => 'Jao Tester',
+            'email'     => 'jaosilva@teste.com',
+            'phone'     => '91988388310',
         ],
         [
             "Accept"=>"application/json",
@@ -104,7 +107,7 @@ class UserTest extends TestCase
         ]);
     }
 
-    public function test_register_user(){
+    public function test_register_user() {
 
         $faker = Factory::create();
         $faker->addProvider(new \Faker\Provider\pt_BR\Person($faker));
@@ -147,6 +150,7 @@ class UserTest extends TestCase
             'users'     => $users->toArray(),
         ]);
     }
+
     public function test_show_user() {
         $users = User::factory()->count(5)->create();
 
@@ -167,6 +171,7 @@ class UserTest extends TestCase
             'users'     => $users->get(3)->toArray(),
         ]);
     }
+
     public function test_delete_user() {
 
         $user = User::factory()->create();
@@ -189,6 +194,7 @@ class UserTest extends TestCase
             'message' => 'Usuário removido com sucesso'
         ]);
     }
+
     public function test_import_image_user() {
 
         Storage::fake('storage');
@@ -203,18 +209,18 @@ class UserTest extends TestCase
 
         $token = $response['token'];
 
-        $response = $this->post('/api/image-user/'.$user->id,[
-            'user_image' => $file
+        $response = $this->post('/api/image-user/',[
+            'userImage' => $file
         ],
          [
-            "Accept"=>"application/json",
-            "Authorization"  => 'Bearer'.$token,
+            'Content-Type'  =>  'multipart/form-data',
+            "Authorization" =>  'Bearer'.$token,
         ]);
 
         $response->assertStatus(200)
         ->assertJson([
             'success' => true,
-            'imagemPath' => 'storage/images/'.$file->getFilename(),
+            'imagemPath' => 'images/'.$file->getClientOriginalName(),
             'message' => 'Imagem enviada com sucesso!'
         ]);
 
