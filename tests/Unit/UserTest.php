@@ -137,9 +137,13 @@ class UserTest extends TestCase
             'email' => $users->get(1)->email,
             'password' => '12345678',
         ]);
-
+        $id = $users->get(1)->id;
         $token = $response['token'];
 
+        $filteredUsers = $users->filter(function ($user) use($id) {
+            return $user->id != $id;
+        });
+        
         $response = $this->get('/api/list/', [
             "Accept"=>"application/json",
             "Authorization"  => 'Bearer'.$token,
@@ -147,7 +151,7 @@ class UserTest extends TestCase
         $response->assertStatus(200)
         ->assertJson([
             'success'   => true,
-            'users'     => $users->toArray(),
+            'users'     => $filteredUsers->toArray(),
         ]);
     }
 
@@ -225,5 +229,33 @@ class UserTest extends TestCase
         ]);
 
 
+    }
+
+    public function test_create_user() {
+        $user = User::factory()->create();
+
+        $response = $this->post('/api/login', [
+            'email' => $user->email,
+            'password' => '12345678',
+        ]);
+
+        $token = $response['token'];
+
+        $response = $this->post('/api/create-user',
+        [
+            'name'      =>  'Jao Tester',
+            'email'     =>  'jaosilva@teste.com',
+            'password'  =>  '12345678',
+            'phone'     =>  '91988388310',
+        ],
+        [
+            "Accept"=>"application/json",
+            "Authorization"  => 'Bearer'.$token,
+        ]);
+
+        $response->assertJson([
+            'success' => 'true',
+            'message' => 'Usuário registrado com sucesso'
+        ]);
     }
 }

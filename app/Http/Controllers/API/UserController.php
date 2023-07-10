@@ -19,7 +19,7 @@ class UserController extends Controller
             //code...
             if (Auth::check()) {
 
-                $users = User::all()->toArray();
+                $users = User::whereNotIn('id', [Auth::user()->id])->get()->toArray();
                 $response = [
                     'success' => true,
                     'users' => $users,
@@ -64,8 +64,8 @@ class UserController extends Controller
             return response()->json($response, 500);
         }
     }
-    public function register(Request $request)
-    {
+
+    public function register(Request $request) {
         // validate the request data
 
         $request->validate([
@@ -97,6 +97,54 @@ class UserController extends Controller
                 'message'   => 'Usuário registrado e logado com sucesso',
             ];
             return response()->json($response, 200);
+        } catch (QueryException $error) {
+            $success = false;
+            $message = $error;
+
+            $response = [
+                'success' => $success,
+                'message' => $message,
+            ];
+            return response()->json($response, 500);
+        }
+
+    }
+
+    public function createUser(Request $request ) {
+        // validate the request data
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
+            'phone' => 'nullable|string|digits_between:11,11'
+        ]);
+
+        try {
+            //code...
+            // create the new user in the database
+            if(Auth::check()) {
+
+                $user = User::create([
+                    'status' => 'active',
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => bcrypt($request->password),
+                    'phone' => $request->phone ?? null,
+                ]);
+
+                $response = [
+                    'success'   => true,
+                    'message'   => 'Usuário registrado com sucesso',
+                ];
+                return response()->json($response, 200);
+            }
+            
+            $response = [
+                'success' => false,
+                'message' => 'Usuário não autenticado!'
+            ];
+            return response()->json($response, 401);
         } catch (QueryException $error) {
             $success = false;
             $message = $error;
@@ -291,7 +339,7 @@ class UserController extends Controller
 
                         $file_name = $image->getClientOriginalName();
                         $path = Storage::disk('local')->putFileAs('images', $image, $file_name);
-                        
+
                         DB::transaction(function () use( $id , $file_name){
                             $result = DB::select('select id from user_images where user_id = :id', ['id' => $id]);
 
