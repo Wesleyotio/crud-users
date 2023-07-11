@@ -20,7 +20,7 @@ class UserFactory extends Factory
 
 
         return [
-            'status' => 'active',
+            'status' => rand(0,1) ? 'active':'inactive',
             'name' => $this->faker->name,
             'email' => $this->faker->freeEmail,
             'phone' => $this->faker->phoneNumberCleared,
