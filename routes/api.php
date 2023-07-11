@@ -27,6 +27,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/logout', [UserController::class, 'logout']);
     Route::put('/update', [UserController::class, 'update'])->name('api.user.update');
+    Route::put('/update-user/{id}', [UserController::class, 'updateSelectUser'])->name('api.user.update-select');
     Route::post('/create-user', [UserController::class, 'createUser'])->name('api.user.create');
     Route::post('/image-user', [UserController::class, 'imageUser'])->name('api.user.update.image');
     Route::get('/list', [UserController::class, 'list'])->name('api.user.all');

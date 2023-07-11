@@ -39,6 +39,7 @@ class UserController extends Controller
             return response()->json($response, 500);
         }
     }
+
     public function show($id) {
         try {
             //code...
@@ -46,8 +47,8 @@ class UserController extends Controller
 
                 $user = User::find($id);
                 $response = [
-                    'success' => true,
-                    'users' => $user,
+                    'success'   => true,
+                    'users'     => $user
                 ];
                 return response()->json($response, 200);
             }
@@ -88,7 +89,6 @@ class UserController extends Controller
 
             // log the user in
             Auth::login($user, true);
-            $message = 'Usuário registrado com sucesso';
             $response = [
                 'user'      => Auth::user()->name,
                 'userId'    => Auth::user()->id,
@@ -139,7 +139,7 @@ class UserController extends Controller
                 ];
                 return response()->json($response, 200);
             }
-            
+
             $response = [
                 'success' => false,
                 'message' => 'Usuário não autenticado!'
@@ -222,20 +222,7 @@ class UserController extends Controller
                     $user->password = bcrypt($request->password);
                 }
                 $user->save();
-                $id = $user->id;
 
-                if ($request->hasFile('userImage')) {
-                    $image = $request->file('userImage');
-                    if ($image->isValid()) {
-
-                        $file_name = $image->getFilename();
-                        $image->store('images', 'storage');
-                        DB::transaction(function () use( $id , $file_name){
-                            DB::insert('insert into user_images (user_id, user_name_image) values (?, ?)', [$id, $file_name]);
-
-                        }, 5);
-                    }
-                }
                 Session::flush();
 
                 $response = [
@@ -338,22 +325,26 @@ class UserController extends Controller
                     if ($image->isValid()) {
 
                         $file_name = $image->getClientOriginalName();
-                        $path = Storage::disk('local')->putFileAs('images', $image, $file_name);
 
-                        DB::transaction(function () use( $id , $file_name){
-                            $result = DB::select('select id from user_images where user_id = :id', ['id' => $id]);
+                        $path = DB::transaction(function () use( $id , $file_name, $image) {
+                                $result = DB::select('select user_name_image from user_images where user_id = :id', ['id' => $id]);
 
-                            if(!$result) {
-                                DB::insert('insert into user_images (user_id, user_name_image) values (?, ?)', [$id, $file_name]);
-                                return;
-                            }
-                            DB::update(
-                                'update user_images
-                                    set user_name_image = ?
-                                    where user_id = ?',[$file_name, $id]);
+                                if(!$result) {
+                                    DB::insert('insert into user_images (user_id, user_name_image) values (?, ?)', [$id, $file_name]);
+                                    return Storage::disk('local')->putFileAs('images', $image, $file_name);
+
+                                }
+                                if (Storage::exists('/images/'.$result[0]->user_name_image)) {
+                                    Storage::delete('/images/'.$result[0]->user_name_image);
+                                    DB::update(
+                                        'update user_images
+                                            set user_name_image = ?
+                                            where user_id = ?',[$file_name, $id]);
+                                    return Storage::disk('local')->putFileAs('images', $image, $file_name);
+                                }
 
 
-                        }, 5);
+                            }, 5);
                         $response = [
                             'success' => true,
                             'imagemPath' =>  $path,
@@ -373,6 +364,46 @@ class UserController extends Controller
                 ];
                 return response()->json($response, 400);
             }
+            $response = [
+                'success' => false,
+                'message' => "Usuário não autenticado",
+            ];
+            return response()->json($response, 401);
+
+        } catch (\Throwable $th) {
+            //throw $th;
+            $response = [
+                'success' => false,
+                'message' => $th->getMessage(),
+            ];
+            return response()->json($response, 500);
+        }
+    }
+
+    public function updateSelectUser(Request $request, $id ) {
+        try {
+            //code...
+            if(Auth::check()) {
+
+                $user = User::find($id);
+                $request->validate([
+                    'name' => 'sometimes|string|max:255',
+                    'email' => 'sometimes|string|email|max:255|unique:users,email,'.$user->id,
+                    'phone' => 'nullable|string|digits_between:11,11',
+                ]);
+
+                $user->name = $request->name;
+                $user->email = $request->email;
+                $user->phone = $request->phone;
+                $user->save();
+
+                $response = [
+                    'success' => true,
+                    'message' => "Usuário atualizado com sucesso",
+                ];
+                return response()->json($response, 200);
+            }
+
             $response = [
                 'success' => false,
                 'message' => "Usuário não autenticado",
