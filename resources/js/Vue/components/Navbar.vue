@@ -8,12 +8,7 @@
             </button>
             <div class="collapse navbar-collapse" id="collapsibleNavId">
                 <ul class="navbar-nav mr-auto mt-2 mt-lg-0" v-if="isLoggedIn">
-                    <li class="nav-item">
-                        <router-link class="nav-link" to="/mybooks">Meus livros</router-link>
-                    </li>
-                    <li class="nav-item">
-                        <router-link class="nav-link" to="/myreservations">Reservar livro</router-link>
-                    </li>
+
                     <li class="nav-item active">
                         <a class="nav-link" href="#" id="navbarScrollingDropdown" role="button" data-toggle="dropdown" aria-expanded="false">
                             <span class="material-icons align-middle">person</span>
@@ -83,6 +78,7 @@ export default {
                 localStorage.removeItem('isLoggedIn')
                 localStorage.removeItem('user')
                 localStorage.removeItem('userId')
+                localStorage.removeItem('token')
                 this.name = null
             }
             //
@@ -90,25 +86,37 @@ export default {
     },
     methods: {
         logout(){
-            axios.get('/sanctum/csrf-cookie').then(response => {
-            axios.post('/api/logout')
+            var token = localStorage.getItem('token')
+
+            axios.get('/api/logout',
+                {
+                    headers: {  'Authorization': `Bearer ${token}`}
+                }
+                )
                 .then(response => {
                     if (response.data.success) {
                         console.log(response)
                         localStorage.removeItem('isLoggedIn')
                         localStorage.removeItem('user')
                         localStorage.removeItem('userId')
+                        localStorage.removeItem('token')
                         this.isLoggedIn = false
                         this.name = null
-                        this.$router.replace('/')
+                        this.emitter.emit('isLoggedIn', false)
+                        this.$router.replace('/login')
                     } else {
                         console.log(response)
+
                     }
                 })
                 .catch(function (error) {
                         console.error(error);
+                        localStorage.removeItem('isLoggedIn')
+                        localStorage.removeItem('user')
+                        localStorage.removeItem('userId')
+                        localStorage.removeItem('token')
+                        this.$router.replace('/')
                 });
-            })
         }
     }
 }

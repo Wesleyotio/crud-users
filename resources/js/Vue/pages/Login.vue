@@ -67,15 +67,16 @@ export default {
                     const data = new Date();
                     localStorage.setItem('toDay', data.getTime())
                     localStorage.setItem('isLoggedIn', true)
-                    localStorage.setItem('user', response.data.user)
                     localStorage.setItem('userId', response.data.userId)
+                    localStorage.setItem('user', response.data.user)
+                    localStorage.setItem('token', response.data.token)
                     if (response.data.success) {
                         this.emitter.emit('isLoggedIn', true)
                         this.$router.push('/')
                     }
                 })
                 .catch(error => {
-                    //console.error(error.response.data.success);
+                    console.error(error.response.data.success);
                     alert("Email ou senha errados!")
                     this.user.email = ''
                     this.user.password = ''
